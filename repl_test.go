@@ -4,10 +4,19 @@ import "testing"
 import "reflect"
 
 func TestCleanInput(t *testing.T) {
-	input := "  Hello, World!  "
-	expected := []string{}
-	result := cleanInput(input)
-	if !reflect.DeepEqual(result, expected) {
-		t.Errorf("Expected %v, got %v", expected, result)
+
+	cases := []struct {
+		input    string
+		expected []string
+	}{
+		{"  hello  world  ",
+			[]string{"hello", "world"}},
+	}
+
+	for _, c := range cases {
+		result := cleanInput(c.input)
+		if !reflect.DeepEqual(result, c.expected) {
+			t.Errorf("Expected %v, got %v", c.expected, result)
+		}
 	}
 }

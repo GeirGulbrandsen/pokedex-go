@@ -1,6 +1,8 @@
 package main
 
+import "strings"
+
 func cleanInput(text string) []string {
-	// Implementation for cleaning input
-	return []string{}
+	fields := strings.Fields(text)
+	return fields
 }
