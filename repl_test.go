@@ -11,6 +11,12 @@ func TestCleanInput(t *testing.T) {
 	}{
 		{"  hello  world  ",
 			[]string{"hello", "world"}},
+		{"   foo   bar   baz   ",
+			[]string{"foo", "bar", "baz"}},
+		{"   singleword   ",
+			[]string{"singleword"}},
+		{"   multiple    spaces   between   words   ",
+			[]string{"multiple", "spaces", "between", "words"}},
 	}
 
 	for _, c := range cases {
