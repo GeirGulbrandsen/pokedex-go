@@ -17,6 +17,8 @@ func TestCleanInput(t *testing.T) {
 			[]string{"singleword"}},
 		{"   multiple    spaces   between   words   ",
 			[]string{"multiple", "spaces", "between", "words"}},
+		{"   Capital Letters ARE LOWERCASED   ",
+			[]string{"capital", "letters", "are", "lowercased"}},
 	}
 
 	for _, c := range cases {
