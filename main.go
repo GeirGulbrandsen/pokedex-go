@@ -91,16 +91,13 @@ func commandHelp(cfg *config) error {
 	println("Welcome to the Pokedex!\n")
 	println("Usage:")
 	println("help: Displays a help message")
-	println("map: List the locations in the Pokemon world")
+	println("map: List the first 20 locations in the Pokemon world")
+	println("mapb: List the previous 20 locations in the Pokemon world")
 	println("exit: Exit the Pokedex")
 	return nil
 }
 
-func commandMap(cfg *config) error {
-	res, err := http.Get(cfg.Next)
-	if err != nil {
-		log.Fatal(err)
-	}
+func processLocations(res *http.Response, cfg *config) {
 	body, err := io.ReadAll(res.Body)
 	res.Body.Close()
 	if res.StatusCode > 299 {
@@ -118,6 +115,14 @@ func commandMap(cfg *config) error {
 	}
 	cfg.Next = locationAreaResponse.Next
 	cfg.Previous = locationAreaResponse.Previous
+}
+
+func commandMap(cfg *config) error {
+	res, err := http.Get(cfg.Next)
+	if err != nil {
+		log.Fatal(err)
+	}
+	processLocations(res, cfg)
 	return nil
 }
 
@@ -130,22 +135,6 @@ func commandMapBack(cfg *config) error {
 	if err != nil {
 		log.Fatal(err)
 	}
-	body, err := io.ReadAll(res.Body)
-	res.Body.Close()
-	if res.StatusCode > 299 {
-		log.Fatalf("Response failed with status code: %d and\nbody: %s\n", res.StatusCode, body)
-	}
-	if err != nil {
-		log.Fatal(err)
-	}
-	var locationAreaResponse locationAreaResponse
-	if err := json.Unmarshal(body, &locationAreaResponse); err != nil {
-		log.Fatal(err)
-	}
-	for _, area := range locationAreaResponse.Results {
-		fmt.Printf("%s\n", area.Name)
-	}
-	cfg.Next = locationAreaResponse.Next
-	cfg.Previous = locationAreaResponse.Previous
+	processLocations(res, cfg)
 	return nil
 }
