@@ -42,9 +42,30 @@ type pokemon struct {
 	Name string `json:"name"`
 }
 
+type stat struct {
+	Name string `json:"name"`
+}
+
+type statEntry struct {
+	BaseStat int  `json:"base_stat"`
+	Stat     stat `json:"stat"`
+}
+
+type typeInfo struct {
+	Name string `json:"name"`
+}
+
+type typeEntry struct {
+	Type typeInfo `json:"type"`
+}
+
 type pokemonData struct {
-	Name           string `json:"name"`
-	BaseExperience int    `json:"base_experience"`
+	Name           string      `json:"name"`
+	BaseExperience int         `json:"base_experience"`
+	Height         int         `json:"height"`
+	Weight         int         `json:"weight"`
+	Stats          []statEntry `json:"stats"`
+	Types          []typeEntry `json:"types"`
 }
 
 type pokemonEncounter struct {
@@ -85,6 +106,11 @@ var cliCommands = map[string]cliCommand{
 		name:        "catch",
 		description: "Attempt to catch a Pokemon by name",
 		callback:    commandCatch,
+	},
+	"inspect": {
+		name:        "inspect",
+		description: "Inspect a caught Pokemon",
+		callback:    commandInspect,
 	},
 }
 
@@ -132,6 +158,7 @@ func commandHelp(cfg *config, args []string) error {
 	println("mapb: List the previous 20 locations in the Pokemon world")
 	println("explore <area_name>: Lists pokemon in a location area")
 	println("catch <pokemon_name>: Attempt to catch a Pokemon")
+	println("inspect <pokemon_name>: Inspect a caught Pokemon")
 	println("exit: Exit the Pokedex")
 	return nil
 }
@@ -250,6 +277,33 @@ func commandCatch(cfg *config, args []string) error {
 		cfg.Pokedex[name] = p
 	} else {
 		fmt.Printf("%s escaped!\n", name)
+	}
+
+	return nil
+}
+
+func commandInspect(cfg *config, args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("please provide a pokemon name")
+	}
+
+	name := args[0]
+	p, ok := cfg.Pokedex[name]
+	if !ok {
+		fmt.Println("you have not caught that pokemon")
+		return nil
+	}
+
+	fmt.Printf("Name: %s\n", p.Name)
+	fmt.Printf("Height: %d\n", p.Height)
+	fmt.Printf("Weight: %d\n", p.Weight)
+	fmt.Println("Stats:")
+	for _, s := range p.Stats {
+		fmt.Printf("  -%s: %d\n", s.Stat.Name, s.BaseStat)
+	}
+	fmt.Println("Types:")
+	for _, t := range p.Types {
+		fmt.Printf("  - %s\n", t.Type.Name)
 	}
 
 	return nil
