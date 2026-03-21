@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"os"
 	"time"
@@ -16,6 +17,7 @@ type config struct {
 	Next     string
 	Previous string
 	Cache    *pokecache.Cache
+	Pokedex  map[string]pokemonData
 }
 
 type cliCommand struct {
@@ -38,6 +40,11 @@ type locationAreaResponse struct {
 
 type pokemon struct {
 	Name string `json:"name"`
+}
+
+type pokemonData struct {
+	Name           string `json:"name"`
+	BaseExperience int    `json:"base_experience"`
 }
 
 type pokemonEncounter struct {
@@ -74,6 +81,11 @@ var cliCommands = map[string]cliCommand{
 		description: "Explore a location area for pokemon encounters",
 		callback:    commandExplore,
 	},
+	"catch": {
+		name:        "catch",
+		description: "Attempt to catch a Pokemon by name",
+		callback:    commandCatch,
+	},
 }
 
 func main() {
@@ -81,6 +93,7 @@ func main() {
 		Next:     "https://pokeapi.co/api/v2/location-area/",
 		Previous: "",
 		Cache:    pokecache.NewCache(5 * time.Second),
+		Pokedex:  make(map[string]pokemonData),
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)
@@ -118,6 +131,7 @@ func commandHelp(cfg *config, args []string) error {
 	println("map: List the first 20 locations in the Pokemon world")
 	println("mapb: List the previous 20 locations in the Pokemon world")
 	println("explore <area_name>: Lists pokemon in a location area")
+	println("catch <pokemon_name>: Attempt to catch a Pokemon")
 	println("exit: Exit the Pokedex")
 	return nil
 }
@@ -201,6 +215,41 @@ func commandExplore(cfg *config, args []string) error {
 	fmt.Println("Found Pokemon:")
 	for _, encounter := range details.PokemonEncounters {
 		fmt.Printf(" - %s\n", encounter.Pokemon.Name)
+	}
+
+	return nil
+}
+
+func commandCatch(cfg *config, args []string) error {
+	if len(args) == 0 {
+		return fmt.Errorf("please provide a pokemon name")
+	}
+
+	name := args[0]
+	url := fmt.Sprintf("https://pokeapi.co/api/v2/pokemon/%s", name)
+
+	body, err := getURLData(cfg, url)
+	if err != nil {
+		return err
+	}
+
+	var p pokemonData
+	if err := json.Unmarshal(body, &p); err != nil {
+		return err
+	}
+
+	fmt.Printf("Throwing a Pokeball at %s...\n", name)
+
+	baseExp := p.BaseExperience
+	if baseExp <= 0 {
+		baseExp = 1
+	}
+
+	if rand.Intn(baseExp) < 40 {
+		fmt.Printf("%s was caught!\n", name)
+		cfg.Pokedex[name] = p
+	} else {
+		fmt.Printf("%s escaped!\n", name)
 	}
 
 	return nil
