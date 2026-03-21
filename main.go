@@ -112,6 +112,11 @@ var cliCommands = map[string]cliCommand{
 		description: "Inspect a caught Pokemon",
 		callback:    commandInspect,
 	},
+	"pokedex": {
+		name:        "pokedex",
+		description: "List all caught Pokemon",
+		callback:    commandPokedex,
+	},
 }
 
 func main() {
@@ -159,6 +164,7 @@ func commandHelp(cfg *config, args []string) error {
 	println("explore <area_name>: Lists pokemon in a location area")
 	println("catch <pokemon_name>: Attempt to catch a Pokemon")
 	println("inspect <pokemon_name>: Inspect a caught Pokemon")
+	println("pokedex: List all caught Pokemon")
 	println("exit: Exit the Pokedex")
 	return nil
 }
@@ -274,11 +280,24 @@ func commandCatch(cfg *config, args []string) error {
 
 	if rand.Intn(baseExp) < 40 {
 		fmt.Printf("%s was caught!\n", name)
+		fmt.Println("You may now inspect it with the inspect command.")
 		cfg.Pokedex[name] = p
 	} else {
 		fmt.Printf("%s escaped!\n", name)
 	}
 
+	return nil
+}
+
+func commandPokedex(cfg *config, args []string) error {
+	if len(cfg.Pokedex) == 0 {
+		fmt.Println("You have not caught any Pokemon yet.")
+		return nil
+	}
+	fmt.Println("Your Pokedex:")
+	for name := range cfg.Pokedex {
+		fmt.Printf(" - %s\n", name)
+	}
 	return nil
 }
 
